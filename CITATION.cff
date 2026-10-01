@@ -8,9 +8,6 @@ authors:
     given-names: Vadym
     affiliation: Cherkasy State Technological University
     orcid: "https://orcid.org/0009-0008-9469-3341"
-  - family-names: Kovalchuk
-    given-names: Svitlana
-    affiliation: Cherkasy State Technological University
 repository-code: "https://github.com/vadym-khodak/llm-persona-audit-ua"
 date-released: 2026-10-01
 version: "1.0.0"

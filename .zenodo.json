@@ -6,10 +6,6 @@
       "name": "Khodak, Vadym",
       "affiliation": "Cherkasy State Technological University",
       "orcid": "0009-0008-9469-3341"
-    },
-    {
-      "name": "Kovalchuk, Svitlana",
-      "affiliation": "Cherkasy State Technological University"
     }
   ],
   "description": "<p>Data and code for a counterfactual persona audit of three commercial large language models (GPT-5.6 Luna, Gemini 3.8 Flash, Claude Sonnet 5 via OpenRouter, without web search). 45 Ukrainian-language consumer queries in insurance, mobile and internet services, and education were asked under nine conditions (no persona, a base persona, six one-attribute variants — low/high income, age 22/62, female, internally displaced person — and a neutral placebo), three times each: 3,645 answers collected on 25–27 September and 1 October 2026. The record contains the answers, LLM annotations of advice content (two annotators), blind human coding, an independent LLM coding, a fact check of state programmes mentioned, the full list of queries and condition prefixes with English translations, and scripts that reproduce every number, table and figure of the accompanying article.</p><p>Дані та код контрфактичного аудиту трьох комерційних мовних моделей: 45 україномовних споживчих запитів (страхування, мобільний зв'язок та інтернет, освіта) у дев'яти умовах персони, по три повтори — 3 645 відповідей, зібраних 25–27 вересня та 1 жовтня 2026 р. Запис містить відповіді, LLM-розмітку змісту порад, сліпу людську розмітку, незалежну LLM-розмітку, перевірку точності згаданих держпрограм, перелік запитів і префіксів умов з англійським перекладом та скрипти, що відтворюють усі числа, таблиці й рисунки статті.</p><p>Licenses: data under CC BY 4.0 (data/LICENSE); code under MIT (LICENSE). Texts of generative AI answers are licensed only to the extent of the authors' rights and are also subject to the providers' terms.</p>",
