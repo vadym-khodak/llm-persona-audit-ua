@@ -1,5 +1,7 @@
 # Аудит персоналізації рекомендацій брендів у відповідях LLM: дані й код
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23080125.svg)](https://doi.org/10.5281/zenodo.23080125)
+
 Дані та код до статті В. Ходака і С. Ковальчук «Do AI Assistants Personalize Brand Recommendations? A Counterfactual Persona Audit of Large Language Models in Ukrainian Service Markets» (рукопис, 2026; Черкаський державний технологічний університет).
 
 *English summary below.*
@@ -63,6 +65,10 @@ python -m venv .venv && .venv/bin/pip install -r requirements.txt
 ```
 
 Повторний збір потребує ключа OpenRouter у `.env` (див. `.env.example`) і коштує ≈ $30 разом з анотацією. Оцінка — `python collect.py estimate`. Відповіді моделей не детерміновані, тож повторний збір дасть подібні, але не тотожні тексти.
+
+## Як цитувати
+
+Khodak, V. (2026). *Persona-conditioned audit of LLM brand recommendations in Ukrainian service markets: Data and code* (Version 1.0.0) [Data set]. Zenodo. https://doi.org/10.5281/zenodo.23080125
 
 ## Ліцензії
 
