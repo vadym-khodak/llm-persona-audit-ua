@@ -149,6 +149,9 @@ def tasks_for(stage):
     queries = d.all_queries()
     if stage == "pilot":
         return build_tasks(d.MODELS, [q for q in queries if q["category"] == PILOT_CATEGORY], d.CONDITIONS, 1)
+    if stage == "wave2":
+        # Повторний збір бази й плацебо в один день — контроль часового дрейфу (рецензія 2026-10-01).
+        return build_tasks(d.MODELS, queries, {code: d.CONDITIONS[code] for code in ("B", "PL")}, d.REPEATS)
     return build_tasks(d.MODELS, queries, d.CONDITIONS, d.REPEATS)
 
 
@@ -156,17 +159,19 @@ def main(command):
     from dotenv import find_dotenv, load_dotenv
 
     load_dotenv(find_dotenv(usecwd=True))
-    target = DATA / ("pilot.jsonl" if command == "pilot" else "responses.jsonl")
+    target = DATA / {"pilot": "pilot.jsonl", "wave2": "responses_wave2.jsonl"}.get(command, "responses.jsonl")
     if command == "estimate":
         prices = fetch_catalog_prices()
-        for stage in ("pilot", "full"):
+        for stage in ("pilot", "full", "wave2"):
             table = estimate_cost(tasks_for(stage), prices)
             print(stage, "\n", table, "\nРазом:", table["cost_usd"].sum())
-    elif command in ("pilot", "full"):
+    elif command in ("pilot", "full", "wave2"):
         failed = run_collection(tasks_for(command), target)
         print("Помилки:", failed[:10], "… всього", len(failed))
     elif command == "aside":
         print("Відкладено:", set_aside_incomplete(DATA / "responses.jsonl"))
+    elif command == "aside-wave2":
+        print("Відкладено:", set_aside_incomplete(DATA / "responses_wave2.jsonl"))
 
 
 if __name__ == "__main__":

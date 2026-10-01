@@ -52,9 +52,10 @@ def h1_table(shift, metric="delta_jaccard"):
 
 def share_gee(responses, outcome, reference="B"):
     data = responses.dropna(subset=[outcome])
-    if reference == "B":
+    if reference != "C0":
         data = data[data.condition != "C0"]
-    data = data[data.condition != "PL"]
+    if reference != "PL":
+        data = data[data.condition != "PL"]
     model = smf.gee(
         f"{outcome} ~ C(condition, Treatment('{reference}')) + C(model)",
         groups="query_id", data=data,
@@ -128,3 +129,52 @@ def interaction_test(shift, metric="delta_jaccard"):
     for i, name in enumerate(names):
         constraint[i, list(fit.params.index).index(name)] = 1
     return float(fit.wald_test(constraint, scalar=True).pvalue)
+
+
+def sameday_placebo_table(shift_main, shift_wave2, metric="delta_jaccard", sesoi=SESOI):
+    """Ознака проти плацебо, коли кожне виміряно в межах одного дня: Δ ознаки (вересень, відносно тогочасної бази)
+    мінус Δ плацебо (жовтень, відносно бази, зібраної того ж дня). Додатне — ознака зсуває набір сильніше."""
+    placebo = shift_wave2[shift_wave2.condition == "PL"][["model", "query_id", metric]].rename(columns={metric: "placebo"})
+    rows = []
+    for condition, part in shift_main[shift_main.condition != "PL"].groupby("condition"):
+        merged = part[["model", "query_id", metric]].merge(placebo, on=["model", "query_id"]).dropna()
+        merged["diff"] = merged[metric] - merged["placebo"]
+        per_query = merged.groupby("query_id")["diff"].mean()
+        mean, p = sign_flip_test(per_query.to_numpy())
+        low, high = cluster_bootstrap_ci(merged, "diff")
+        rows.append({"condition": condition, "mean_diff": mean, "ci_low": low, "ci_high": high, "p": p,
+                     "n_queries": len(per_query), **equivalence(merged, "diff", sesoi)})
+    table = pd.DataFrame(rows)
+    table["p_holm"] = multipletests(table["p"], method="holm")[1]
+    return table
+
+
+def drift_table(lists_main, lists_wave2, condition="B"):
+    """Дрейф у часі: шумова межа бази у вересні мінус подібність вересневої бази до жовтневої (Jaccard)."""
+    from collections import defaultdict
+    from itertools import combinations, product
+
+    from metrics import jaccard
+
+    def cells(lists):
+        out = defaultdict(list)
+        for (model, query_id, cond, _), brands in lists.items():
+            if cond == condition:
+                out[(model, query_id)].append(brands)
+        return out
+
+    first, second = cells(lists_main), cells(lists_wave2)
+    rows = []
+    for key in first.keys() & second.keys():
+        noise = [jaccard(a, b) for a, b in combinations(first[key], 2)]
+        cross = [jaccard(a, b) for a, b in product(first[key], second[key])]
+        noise, cross = np.nanmean(noise) if noise else np.nan, np.nanmean(cross) if cross else np.nan
+        rows.append({"model": key[0], "query_id": key[1], "drift": noise - cross})
+    df = pd.DataFrame(rows)
+    out = []
+    for model, part in [("pooled", df), *df.groupby("model")]:
+        per_query = part.groupby("query_id")["drift"].mean()
+        mean, p = sign_flip_test(per_query.to_numpy())
+        low, high = cluster_bootstrap_ci(part, "drift")
+        out.append({"model": model, "mean_drift": mean, "ci_low": low, "ci_high": high, "p": p})
+    return pd.DataFrame(out)

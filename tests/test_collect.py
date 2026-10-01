@@ -52,3 +52,8 @@ class _NullClient:
 
     def __exit__(self, *exc):
         return False
+
+def test_wave2_tasks_are_base_and_placebo_only():
+    tasks = c.tasks_for("wave2")
+    assert len(tasks) == 45 * 2 * 3 * 3
+    assert {t["condition"] for t in tasks} == {"B", "PL"}

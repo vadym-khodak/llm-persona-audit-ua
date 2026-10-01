@@ -101,3 +101,21 @@ def test_share_gee_reference_c0():
             for q in range(30) for cond, base in (("C0", 0.2), ("B", 0.1), ("P1", 0.2))]
     out = s.share_gee(pd.DataFrame(rows), "x", reference="C0").set_index("condition")
     assert abs(out.loc["P1", "coef"]) < 0.02 and out.loc["B", "coef"] < -0.08
+
+
+def test_sameday_placebo_contrast_uses_deltas():
+    main = pd.DataFrame([{"model": "m", "query_id": f"q{q}", "condition": c, "delta_jaccard": d}
+                         for q in range(30) for c, d in (("P1", 0.10 + 0.01 * (q % 2)), ("P5", 0.02))])
+    wave2 = pd.DataFrame([{"model": "m", "query_id": f"q{q}", "condition": "PL", "delta_jaccard": 0.02}
+                          for q in range(30)])
+    table = s.sameday_placebo_table(main, wave2).set_index("condition")
+    assert table.loc["P1", "mean_diff"] > 0.08 and table.loc["P1", "p_holm"] < 0.01
+    assert abs(table.loc["P5", "mean_diff"]) < 1e-9
+
+
+def test_drift_table_detects_change_between_waves():
+    key = lambda q, r: ("m", f"q{q}", "B", r)
+    main = {key(q, r): ["a", "b", "c"] for q in range(20) for r in (1, 2, 3)}
+    wave2 = {key(q, r): ["a", "x", "y"] for q in range(20) for r in (1, 2, 3)}
+    row = s.drift_table(main, wave2).iloc[0]
+    assert row["mean_drift"] > 0.5 and row["p"] < 0.001

@@ -16,6 +16,7 @@
   - шість варіантів, кожен змінює одну ознаку: дохід 15 000 / 100 000 грн, вік 22 / 62, жінка, ВПО з Харкова у Львові;
   - плацебо «я люблю каву».
 - **Обсяг:** 3 повтори — разом 3 645 відповідей. Основні умови зібрано 25–27.09.2026, плацебо — 01.10.2026.
+- **Друга хвиля:** база й плацебо повторно зібрані в один день (01.10.2026, 810 відповідей) — контроль часового дрейфу.
 
 Точні префікси умов і всі запити з англійським перекладом: [`data/queries.md`](data/queries.md), [`data/queries.csv`](data/queries.csv), [`data/conditions.csv`](data/conditions.csv).
 
@@ -24,9 +25,10 @@
 | Що | Файл | Записів | Як отримано |
 |---|---|---|---|
 | Відповіді моделей: модель, запит, категорія, умова, повтор, промпт, час, версія моделі, текст відповіді, використання токенів | `data/responses.jsonl` | 3 645 | `collect.py full` або `collection.ipynb` |
+| Друга хвиля: база (B) і плацебо (PL) в один день | `data/responses_wave2.jsonl` | 810 | `collect.py wave2` |
 | Пілот (категорія «зв'язок», 1 повтор; перенесено в основний збір) | `data/pilot.jsonl` | 360 | `collect.py pilot` |
-| LLM-анотація змісту порад: усі бренди, згадка персони, знижки/пільги, держпрограми, групові узагальнення, прохання уточнити (DeepSeek V4 Flash; 6 відповідей — Gemini) | `data/annotations.jsonl` | 3 240 | `annotate.py full` |
-| Друга анотація (Gemini 3.8 Flash): усі відповіді з рідкісними позначками + випадкові | `data/annotations_second.jsonl` | 1 369 | `annotate.py second` |
+| LLM-анотація змісту порад: усі бренди, згадка персони, знижки/пільги, держпрограми, групові узагальнення, прохання уточнити (DeepSeek V4 Flash; 6 відповідей — Gemini) | `data/annotations.jsonl` | 3 645 | `annotate.py full`, `annotate.py placebo` |
+| Друга анотація (Gemini 3.8 Flash): усі відповіді з рідкісними позначками + випадкові (для плацебо — лише позначені) | `data/annotations_second.jsonl` | 1 488 | `annotate.py second`, `annotate.py placebo` |
 | Анотації пілоту: перша (v1) і уточнена (v2) версії визначень, два анотатори | `data/pilot_annotations_*_v1/v2.jsonl` | по 360 | `annotate.py` |
 | Розбіжності анотаторів щодо рідкісних маркерів | `data/adjudication.csv` | 386 | `annotate.py adjudicate` |
 | Сліпа людська розмітка розбіжностей (рівень 2 — чи визначає маркер пораду): таблиця, ключ, результат | `data/human_coding.xlsx`, `data/human_coding_key.csv`, `data/human_coding_scored.csv` | 100 | `human_sheet.py make` / `score` |
@@ -34,7 +36,7 @@
 | Незалежна сліпа LLM-розмітка тих самих випадків (Claude, критерій присутності) | `data/claude_coding_disagreements.xlsx`, `data/claude_coding_consensus.xlsx` | 100 / 40 | окремі сесії Claude з доступом лише до визначень, запиту й відповіді |
 | Перевірка точності згаданих держпрограм (30 відповідей) з джерелами | `data/programme_accuracy.md` | 30 | вебперевірка за офіційними джерелами |
 
-Плацебо-відповіді (умова `PL`) не анотовано за змістом.
+Відповіді другої хвилі не анотовано за змістом.
 
 ## Код
 
@@ -45,12 +47,12 @@
 | `mentions.py` | Пошук брендів у тексті з урахуванням відмінків |
 | `annotate.py` | LLM-анотація, вибірка для другого анотатора, таблиця розбіжностей |
 | `metrics.py` | Набори брендів, Jaccard і RBO до бази, шумова межа, частки сегментів |
-| `stats.py` | Sign-flip перестановковий тест, cluster bootstrap, Holm, GEE, порівняння з плацебо, тест еквівалентності (±0,05), тест взаємодії умова × модель |
+| `stats.py` | Sign-flip перестановковий тест, cluster bootstrap, Holm, GEE, порівняння з плацебо (зокрема зібраним того ж дня), дрейф між хвилями, тест еквівалентності (±0,05), тест взаємодії умова × модель |
 | `report.py` | Відтворює всі таблиці (`results/`) і рисунки (`figures/`) статті |
 | `human_sheet.py` | Сліпі таблиці для ручної розмітки та їх оцінювання |
 | `export_queries.py` | Експорт запитів і префіксів з англійським перекладом |
 | `collection.ipynb` | Самодостатній ноутбук із тим самим кодом (без імпорту модулів проєкту); генерується `build_notebook.py` |
-| `tests/` | Тести (47), зокрема перевірка, що ноутбук збігається з модулями |
+| `tests/` | Тести (50), зокрема перевірка, що ноутбук збігається з модулями |
 
 ## Як відтворити
 
@@ -76,7 +78,7 @@ python -m venv .venv && .venv/bin/pip install -r requirements.txt
 
 ## English summary
 
-Data and code for a counterfactual persona audit of LLM brand recommendations. Three commercial LLMs (GPT-5.6 Luna, Gemini 3.8 Flash, Claude Sonnet 5; via OpenRouter, no web search) answered 45 Ukrainian-language consumer queries in mobile/internet services, insurance and education under nine conditions: no persona, a base persona, six one-attribute variants (low/high income, age 22/62, female, internally displaced person) and a neutral placebo. Each condition was run three times, giving 3,645 answers.
+Data and code for a counterfactual persona audit of LLM brand recommendations. Three commercial LLMs (GPT-5.6 Luna, Gemini 3.8 Flash, Claude Sonnet 5; via OpenRouter, no web search) answered 45 Ukrainian-language consumer queries in mobile/internet services, insurance and education under nine conditions: no persona, a base persona, six one-attribute variants (low/high income, age 22/62, female, internally displaced person) and a neutral placebo. Each condition was run three times, giving 3,645 answers; the base and placebo conditions were repeated on one day (810 answers) to control for temporal drift.
 
 **Records:**
 - the answers;
@@ -86,6 +88,6 @@ Data and code for a counterfactual persona audit of LLM brand recommendations. T
 - a fact check of the state programmes mentioned;
 - all prompts with English translations.
 
-**Reproducing the article:** `python report.py` reproduces every table and figure from the stored data; `pytest` runs 47 tests.
+**Reproducing the article:** `python report.py` reproduces every table and figure from the stored data; `pytest` runs 50 tests.
 
 **Licenses:** code under MIT, data under CC BY 4.0.

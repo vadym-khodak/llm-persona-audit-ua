@@ -162,6 +162,12 @@ def main(command):
         records = load_jsonl(DATA / "responses.jsonl")
         sample = second_check_sample(records, load_jsonl(DATA / "annotations.jsonl"))
         print(len(sample), "відповідей на перевірку;", run_annotation(sample, DATA / "annotations_second.jsonl", SECOND))
+    elif command == "placebo":
+        # Плацебо зібрано пізніше; анотуємо його тією ж схемою, другий анотатор — лише на позначених.
+        records = [r for r in load_jsonl(DATA / "responses.jsonl") if r["condition"] == "PL"]
+        print(run_annotation(records, DATA / "annotations.jsonl", PRIMARY))
+        sample = second_check_sample(records, load_jsonl(DATA / "annotations.jsonl"), n_random=0)
+        print(len(sample), "на перевірку;", run_annotation(sample, DATA / "annotations_second.jsonl", SECOND))
     elif command == "adjudicate":
         records = load_jsonl(DATA / "responses.jsonl")
         table = adjudication_table(load_jsonl(DATA / "annotations.jsonl"), load_jsonl(DATA / "annotations_second.jsonl"), records)

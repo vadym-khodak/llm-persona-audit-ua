@@ -12,7 +12,7 @@ from statsmodels.stats.multitest import multipletests
 from annotate import MARKERS, RARE_MARKERS, cohen_kappa
 from collect import DATA, load_jsonl, task_key
 from metrics import brand_lists, response_frame, shift_table
-from stats import focal_contrasts, h1_table, interaction_test, placebo_table, share_gee
+from stats import drift_table, focal_contrasts, h1_table, interaction_test, placebo_table, sameday_placebo_table, share_gee
 
 ROOT = Path(__file__).parent
 RESULTS, FIGURES = ROOT / "results", ROOT / "figures"
@@ -124,6 +124,17 @@ def main():
     markers.to_csv(RESULTS / "table4_markers.csv")
     pd.concat([marker_effects(final, responses).assign(reference="B"),
                marker_effects(final, responses, reference="C0").assign(reference="C0")]).to_csv(RESULTS / "table5_marker_effects.csv", index=False)
+    if any(f["key"][2] == "PL" for f in final):
+        marker_effects(final, responses, reference="PL").to_csv(RESULTS / "table12_markers_vs_placebo.csv", index=False)
+    wave2_path = DATA / "responses_wave2.jsonl"
+    if wave2_path.exists():
+        lists_w2 = brand_lists(load_jsonl(wave2_path))
+        shift_w2 = shift_table(lists_w2)
+        pd.concat([sameday_placebo_table(shift, shift_w2).assign(model="pooled"),
+                   *[sameday_placebo_table(shift[shift.model == m], shift_w2[shift_w2.model == m]).assign(model=m)
+                     for m in sorted(shift.model.unique())]]).to_csv(RESULTS / "table10_sameday_placebo.csv", index=False)
+        h1_table(shift_w2).to_csv(RESULTS / "table11_wave2_placebo_delta.csv", index=False)
+        drift_table(lists, lists_w2).to_csv(RESULTS / "table13_drift.csv", index=False)
     cols = ["n_brands", "share_budget", "share_premium", "share_free", "share_global", "share_ru", "share_incumbent"]
     responses.groupby("condition")[cols].mean().reindex(["C0", "B", *ORDER[1:]]).to_csv(RESULTS / "table6_shares_by_condition.csv")
     plot_shift(h1)
