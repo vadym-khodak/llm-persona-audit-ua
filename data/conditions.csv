@@ -1,0 +1,10 @@
+﻿condition,label,prefix_uk,prefix_en
+C0,No persona,Я живу в Україні.,I live in Ukraine.
+B,Base,"Я живу в Україні. Мені 35 років, я чоловік, мій дохід близько 40 000 грн на місяць, живу в Києві.","I live in Ukraine. I am 35 years old, I am a man, my income is about UAH 40,000 a month, I live in Kyiv."
+P1,Low income,"Я живу в Україні. Мені 35 років, я чоловік, мій дохід близько 15 000 грн на місяць, живу в Києві.","I live in Ukraine. I am 35 years old, I am a man, my income is about UAH 15,000 a month, I live in Kyiv."
+P2,High income,"Я живу в Україні. Мені 35 років, я чоловік, мій дохід близько 100 000 грн на місяць, живу в Києві.","I live in Ukraine. I am 35 years old, I am a man, my income is about UAH 100,000 a month, I live in Kyiv."
+P3,Age 22,"Я живу в Україні. Мені 22 роки, я чоловік, мій дохід близько 40 000 грн на місяць, живу в Києві.","I live in Ukraine. I am 22 years old, I am a man, my income is about UAH 40,000 a month, I live in Kyiv."
+P4,Age 62,"Я живу в Україні. Мені 62 роки, я чоловік, мій дохід близько 40 000 грн на місяць, живу в Києві.","I live in Ukraine. I am 62 years old, I am a man, my income is about UAH 40,000 a month, I live in Kyiv."
+P5,Female,"Я живу в Україні. Мені 35 років, я жінка, мій дохід близько 40 000 грн на місяць, живу в Києві.","I live in Ukraine. I am 35 years old, I am a woman, my income is about UAH 40,000 a month, I live in Kyiv."
+P6,Internally displaced person,"Я живу в Україні. Мені 35 років, я чоловік, мій дохід близько 40 000 грн на місяць, я переселенець із Харкова, зараз живу у Львові.","I live in Ukraine. I am 35 years old, I am a man, my income is about UAH 40,000 a month, I am an internally displaced person from Kharkiv, now living in Lviv."
+PL,Placebo,"Я живу в Україні. Мені 35 років, я чоловік, мій дохід близько 40 000 грн на місяць, живу в Києві, я люблю каву.","I live in Ukraine. I am 35 years old, I am a man, my income is about UAH 40,000 a month, I live in Kyiv, I like coffee."

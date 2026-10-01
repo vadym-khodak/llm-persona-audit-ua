@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "Якщо ви використовуєте ці дані або код, будь ласка, посилайтеся на них так. / If you use this data or code, please cite it as below."
+type: dataset
+title: "Persona-conditioned audit of LLM brand recommendations in Ukrainian service markets: data and code"
+abstract: "Data and code for a counterfactual persona audit of three commercial LLMs on 45 Ukrainian-language consumer queries in insurance, telecommunications and education under nine persona conditions (3,645 answers), with LLM and human annotations of advice content and scripts reproducing the accompanying article."
+authors:
+  - family-names: Khodak
+    given-names: Vadym
+    affiliation: Cherkasy State Technological University
+    orcid: "https://orcid.org/0009-0008-9469-3341"
+  - family-names: Kovalchuk
+    given-names: Svitlana
+    affiliation: Cherkasy State Technological University
+repository-code: "https://github.com/vadym-khodak/llm-persona-audit-ua"
+date-released: 2026-10-01
+version: "1.0.0"
+license:
+  - CC-BY-4.0
+  - MIT
+keywords:
+  - large language models
+  - personalization
+  - algorithm audit
+  - brand recommendations
+  - Ukraine
