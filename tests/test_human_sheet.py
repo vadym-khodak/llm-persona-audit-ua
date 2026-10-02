@@ -41,3 +41,13 @@ def test_consensus_sample_mixes_positives_and_controls_without_hints():
     assert sample["consensus"].value_counts().to_dict() == {True: 30, False: 10}
     blind = h.blind_view(sample, show_fragment=False)
     assert blind["fragment"].eq("").all() and "consensus" not in blind.columns
+
+
+def test_second_coder_sample_is_stratified_and_blind():
+    records = [{"model": "m", "query_id": f"q{i}", "condition": c, "repeat": 1, "prompt": "p", "response_text": "r"}
+               for c in ("B", "P1", "P4", "P6", "PL", "C0") for i in range(30)]
+    sample = h.second_coder_sample(records, per_condition=5, conditions=("B", "P1", "P4", "P6"))
+    assert sample.groupby("condition").size().to_dict() == {"B": 5, "P1": 5, "P4": 5, "P6": 5}
+    blind = h.second_coder_view(sample)
+    assert not {"model", "condition"} & set(blind.columns)
+    assert {"Знижки й пільги (1/0)", "Державні програми (1/0)", "Групове узагальнення (1/0)"} <= set(blind.columns)

@@ -54,7 +54,7 @@
 | `human_sheet.py` | Сліпі таблиці для ручної розмітки та їх оцінювання |
 | `export_queries.py` | Експорт запитів і префіксів з англійським перекладом |
 | `collection.ipynb` | Самодостатній ноутбук із тим самим кодом (без імпорту модулів проєкту); генерується `build_notebook.py` |
-| `tests/` | Тести (50), зокрема перевірка, що ноутбук збігається з модулями |
+| `tests/` | Тести (51), зокрема перевірка, що ноутбук збігається з модулями |
 
 ## Як відтворити
 
@@ -94,6 +94,6 @@ Data and code for a counterfactual persona audit of LLM brand recommendations. T
 - a fact check of the state programmes mentioned;
 - all prompts with English translations.
 
-**Reproducing the article:** `python report.py` reproduces every table and figure from the stored data; `pytest` runs 50 tests.
+**Reproducing the article:** `python report.py` reproduces every table and figure from the stored data; `pytest` runs 51 tests.
 
 **Licenses:** code under MIT, data under CC BY 4.0.
