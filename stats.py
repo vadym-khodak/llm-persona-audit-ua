@@ -178,3 +178,16 @@ def drift_table(lists_main, lists_wave2, condition="B"):
         low, high = cluster_bootstrap_ci(part, "drift")
         out.append({"model": model, "mean_drift": mean, "ci_low": low, "ci_high": high, "p": p})
     return pd.DataFrame(out)
+
+
+def brand_mention_contrasts(mentions, brands, conditions, reference="B"):
+    """Частота згадки окремих брендів (0/1 на відповідь) за умовами відносно бази: GEE, кластери за запитом, Holm."""
+    rows = []
+    for brand in brands:
+        data = mentions[(mentions.brand == brand) & mentions.condition.isin([reference, *conditions])]
+        effects = share_gee(data, "mentioned", reference=reference).set_index("condition")
+        for condition in conditions:
+            rows.append({"brand": brand, "condition": condition, **effects.loc[condition].to_dict()})
+    table = pd.DataFrame(rows)
+    table["p_holm"] = multipletests(table["p"], method="holm")[1]
+    return table

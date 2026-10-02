@@ -119,3 +119,15 @@ def test_drift_table_detects_change_between_waves():
     wave2 = {key(q, r): ["a", "x", "y"] for q in range(20) for r in (1, 2, 3)}
     row = s.drift_table(main, wave2).iloc[0]
     assert row["mean_drift"] > 0.5 and row["p"] < 0.001
+
+
+def test_brand_mention_contrasts_binary_gee():
+    rng = np.random.default_rng(0)
+    rows = []
+    for q in range(30):
+        for cond, p in (("B", 0.5), ("P1", 0.8), ("P2", 0.2)):
+            for model in ("m1", "m2"):
+                rows.append({"query_id": f"edu-{q}", "condition": cond, "model": model, "brand": "X",
+                             "mentioned": float(rng.random() < p)})
+    out = s.brand_mention_contrasts(pd.DataFrame(rows), brands=["X"], conditions=["P1", "P2"]).set_index("condition")
+    assert out.loc["P1", "coef"] > 0.15 and out.loc["P2", "coef"] < -0.15 and (out.p_holm < 0.05).all()

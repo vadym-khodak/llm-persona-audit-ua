@@ -39,9 +39,10 @@ def rbo_ext(s, l, p=0.9):
     return min(1.0, value)
 
 
-def brand_lists(records):
+def brand_lists(records, exclude=()):
     return {
-        task_key(r): [hit["brand"] for hit in find_mentions(r["response_text"], patterns_for(r["category"]))]
+        task_key(r): [hit["brand"] for hit in find_mentions(r["response_text"], patterns_for(r["category"]))
+                      if hit["brand"] not in exclude]
         for r in records
     }
 

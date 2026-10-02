@@ -168,6 +168,12 @@ def main(command):
         print(run_annotation(records, DATA / "annotations.jsonl", PRIMARY))
         sample = second_check_sample(records, load_jsonl(DATA / "annotations.jsonl"), n_random=0)
         print(len(sample), "на перевірку;", run_annotation(sample, DATA / "annotations_second.jsonl", SECOND))
+    elif command == "wave2":
+        # Друга хвиля (база й плацебо в один день): контроль змісту порад у межах одного дня.
+        records = load_jsonl(DATA / "responses_wave2.jsonl")
+        print(run_annotation(records, DATA / "annotations_wave2.jsonl", PRIMARY, workers=24))
+        sample = second_check_sample(records, load_jsonl(DATA / "annotations_wave2.jsonl"), n_random=0)
+        print(len(sample), "на перевірку;", run_annotation(sample, DATA / "annotations_wave2_second.jsonl", SECOND))
     elif command == "adjudicate":
         records = load_jsonl(DATA / "responses.jsonl")
         table = adjudication_table(load_jsonl(DATA / "annotations.jsonl"), load_jsonl(DATA / "annotations_second.jsonl"), records)

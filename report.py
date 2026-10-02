@@ -12,7 +12,7 @@ from statsmodels.stats.multitest import multipletests
 from annotate import MARKERS, RARE_MARKERS, cohen_kappa
 from collect import DATA, load_jsonl, task_key
 from metrics import brand_lists, response_frame, shift_table
-from stats import drift_table, focal_contrasts, h1_table, interaction_test, placebo_table, sameday_placebo_table, share_gee
+from stats import brand_mention_contrasts, drift_table, focal_contrasts, h1_table, interaction_test, placebo_table, sameday_placebo_table, share_gee
 
 ROOT = Path(__file__).parent
 RESULTS, FIGURES = ROOT / "results", ROOT / "figures"
@@ -98,6 +98,46 @@ def plot_markers(markers):
     ax.figure.savefig(FIGURES / "fig3_content_markers.png", dpi=300)
 
 
+def education_brands(records, brands=("Prometheus", "Projector", "Coursera", "Mate academy")):
+    from mentions import find_mentions, patterns_for
+
+    rows = []
+    for r in records:
+        if r["category"] != "education" or r["condition"] not in ("B", "P1", "P2"):
+            continue
+        named = {h["brand"] for h in find_mentions(r["response_text"], patterns_for("education"))}
+        for brand in brands:
+            rows.append({"query_id": r["query_id"], "model": r["model"], "condition": r["condition"],
+                         "brand": brand, "mentioned": float(brand in named)})
+    return brand_mention_contrasts(pd.DataFrame(rows), brands=list(brands), conditions=["P1", "P2"])
+
+
+def content_sameday(records, final):
+    """Зміст порад у другій хвилі: плацебо проти бази того ж дня та дрейф бази між хвилями (GEE, кластери за запитом)."""
+    wave2 = load_jsonl(DATA / "responses_wave2.jsonl")
+    final2 = final_markers(load_jsonl(DATA / "annotations_wave2.jsonl"), load_jsonl(DATA / "annotations_wave2_second.jsonl"))
+    rows = []
+    for f, wave in ((final, "w1"), (final2, "w2")):
+        for x in f:
+            if x["key"][2] in ("B", "PL"):
+                rows.append({"model": x["key"][0], "query_id": x["key"][1], "repeat": x["key"][3],
+                             "condition": f"{x['key'][2]}_{wave}", **{m: float(x[m]) for m in MARKERS}})
+    data = pd.DataFrame(rows)
+    out = []
+    for marker in ["mentions_discount_or_benefit", "mentions_state_programme", "stereotype", "references_persona"]:
+        rates = data.groupby("condition")[marker].mean()
+        sameday = share_gee(data[data.condition.isin(["B_w2", "PL_w2"])].assign(
+            condition=lambda d: d.condition.map({"B_w2": "B", "PL_w2": "Placebo"})), marker).set_index("condition")
+        drift = share_gee(data[data.condition.isin(["B_w1", "B_w2"])].assign(
+            condition=lambda d: d.condition.map({"B_w1": "B", "B_w2": "B2"})), marker).set_index("condition")
+        out.append({"marker": marker, **{f"rate_{k}": v for k, v in rates.items()},
+                    "placebo_minus_base_sameday": sameday.loc["Placebo", "coef"], "pb_ci_low": sameday.loc["Placebo", "ci_low"],
+                    "pb_ci_high": sameday.loc["Placebo", "ci_high"], "pb_p": sameday.loc["Placebo", "p"],
+                    "drift_base_oct_minus_sep": drift.loc["B2", "coef"], "drift_ci_low": drift.loc["B2", "ci_low"],
+                    "drift_ci_high": drift.loc["B2", "ci_high"], "drift_p": drift.loc["B2", "p"]})
+    return pd.DataFrame(out)
+
+
 def main():
     RESULTS.mkdir(exist_ok=True)
     FIGURES.mkdir(exist_ok=True)
@@ -135,6 +175,15 @@ def main():
                      for m in sorted(shift.model.unique())]]).to_csv(RESULTS / "table10_sameday_placebo.csv", index=False)
         h1_table(shift_w2).to_csv(RESULTS / "table11_wave2_placebo_delta.csv", index=False)
         drift_table(lists, lists_w2).to_csv(RESULTS / "table13_drift.csv", index=False)
+        lviv = {"Копійка", "Астра", "LinkCom", "UARNet"}
+        shift_nl = shift_table(brand_lists(records, exclude=lviv))
+        shift_w2_nl = shift_table(brand_lists(load_jsonl(wave2_path), exclude=lviv))
+        pd.concat([h1_table(shift_nl).query("model == 'pooled'").assign(analysis="delta_vs_noise"),
+                   sameday_placebo_table(shift_nl, shift_w2_nl).assign(model="pooled", analysis="minus_sameday_placebo")]
+                  ).to_csv(RESULTS / "table14_without_lviv_providers.csv", index=False)
+    education_brands(records).to_csv(RESULTS / "table15_education_brands.csv", index=False)
+    if (DATA / "annotations_wave2.jsonl").exists():
+        content_sameday(records, final).to_csv(RESULTS / "table16_content_sameday.csv", index=False)
     cols = ["n_brands", "share_budget", "share_premium", "share_free", "share_global", "share_ru", "share_incumbent"]
     responses.groupby("condition")[cols].mean().reindex(["C0", "B", *ORDER[1:]]).to_csv(RESULTS / "table6_shares_by_condition.csv")
     plot_shift(h1)

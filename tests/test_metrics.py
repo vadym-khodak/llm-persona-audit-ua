@@ -45,3 +45,9 @@ def test_empty_answers_excluded_not_identical():
 def test_served_model_drift_detected():
     recs = [{"model": "a", "served_model": "a-0801"}, {"model": "a", "served_model": "a-0915"}]
     assert m.check_served_models(recs) == {"a": {"a-0801", "a-0915"}}
+
+def test_brand_lists_can_exclude_brands():
+    rec = {"model": "m", "query_id": "tel-01", "category": "telecom", "condition": "P6", "repeat": 1,
+           "response_text": "Київстар, а у Львові — Копійка."}
+    assert m.brand_lists([rec])[("m", "tel-01", "P6", 1)] == ["Київстар", "Копійка"]
+    assert m.brand_lists([rec], exclude={"Копійка"})[("m", "tel-01", "P6", 1)] == ["Київстар"]
